@@ -34,6 +34,7 @@ class ThreeDCamera(CameraWithPerspective):
         "theta" : -TAU/4, #Rotation about z axis
     }
     def __init__(self, *args, **kwargs):
+        # import traceback; print "IN ThreeDCamera"; traceback.print_stack(); print "IN ThreeDCamera"
         Camera.__init__(self, *args, **kwargs)
         self.unit_sun_vect = self.sun_vect/np.linalg.norm(self.sun_vect)
         ## Lives in the phi-theta-distance space
@@ -129,6 +130,7 @@ class ThreeDCamera(CameraWithPerspective):
     def set_position(self, phi = None, theta = None, distance = None):
         point = self.get_spherical_coords(phi, theta, distance)
         self.rotation_mobject.move_to(point)
+        print "target point", point
         self.phi, self.theta, self.distance = point
 
     def get_view_transformation_matrix(self):
