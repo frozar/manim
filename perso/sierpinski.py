@@ -786,23 +786,10 @@ class CoordinateSystem(ThreeDScene):
 
         title = TextMobject("Coordinate system")
         # title.to_edge(UP)
-        title.to_edge(5*IN)
+        title.to_edge(3*IN)
         title.rotate(np.pi/2*angle_factor, RIGHT)
         title.rotate(-5*np.pi/4, OUT)
         self.add(title)
-        
-        print "0 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
-        phi, theta, distance = self.camera.get_spherical_coords()
-        # phi += 2*np.pi/4
-        # self.move_camera(phi, theta, distance, run_time = 3) 
-        # print "1 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
-        # self.wait(1)
-
-        phi   += 2*np.pi/4*angle_factor
-        theta += 3*2*np.pi/8
-        self.move_camera(phi, theta, distance, run_time = 0.3) 
-        print "2 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
-        # self.wait(3)
 
         cube_origin = self.get_cube(self.side_length / 2, self.cube_opacity, WHITE)
         self.add(cube_origin)
@@ -819,7 +806,23 @@ class CoordinateSystem(ThreeDScene):
         cube_z = self.get_cube(self.side_length, self.cube_opacity, BLUE)
         cube_z.shift(OUT)
         self.add(cube_z)
-        self.wait(0.1)
+
+        print "0 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
+        phi, theta, distance = self.camera.get_spherical_coords()
+        phi      += 2*np.pi/4*angle_factor
+        theta    += 3*2*np.pi/8
+        distance /= 2.
+        self.move_camera(phi, theta, distance, run_time = 3) 
+        print "1 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
+
+        phi, theta, distance = self.camera.get_spherical_coords()
+        distance *= 2.
+        self.move_camera(phi, theta, distance, run_time = 3) 
+        print "2 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
+        # self.wait(3)
+
+        self.wait(3)
+        return
 
         self.remove(cube_origin)
         self.remove(cube_x)
@@ -837,7 +840,7 @@ class CoordinateSystem(ThreeDScene):
         l_base_cube = [base_cube]
 
         ## EVERY RECURSION
-        nb_recursion = 3
+        nb_recursion = 1
         for depth in range(nb_recursion):
             # The l_new_base_cube contains 4 instances of each base cube from l_base_cube.
             l_new_base_cube, l_sub_cube = self.super_recursion(l_base_cube, depth)

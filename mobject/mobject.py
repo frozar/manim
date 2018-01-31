@@ -414,6 +414,8 @@ class Mobject(Container):
         else:
             target = point_or_mobject
         point_to_align = self.get_critical_point(aligned_edge)
+        print "move_to target", target
+        print "move_to point_to_align", point_to_align
         self.shift(target - point_to_align)
         return self
 
