@@ -773,6 +773,9 @@ class CoordinateSystem(ThreeDScene):
         # "camera_class": ThreeDCamera,
     }
     def construct(self):
+        self.build_coordinate_system()
+        self.build_sierpinski_tetrahedron()
+        
         # import traceback; print "IN CoordinateSystem"; traceback.print_stack(); print "IN CoordinateSystem"
         # self.camera.camera_distance = 1,
         # self.camera.__init__(phi = 0, theta = 0)
@@ -782,6 +785,7 @@ class CoordinateSystem(ThreeDScene):
         # theta += 3*2*np.pi/8
         # self.camera.set_position(phi, theta, distance)
 
+    def build_coordinate_system(self):
         angle_factor = 0.9
 
         title = TextMobject("Coordinate system")
@@ -807,27 +811,27 @@ class CoordinateSystem(ThreeDScene):
         cube_z.shift(OUT)
         self.add(cube_z)
 
-        print "0 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
+        # print "0 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
         phi, theta, distance = self.camera.get_spherical_coords()
         phi      += 2*np.pi/4*angle_factor
         theta    += 3*2*np.pi/8
         distance /= 2.
-        self.move_camera(phi, theta, distance, run_time = 3) 
-        print "1 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
+        self.move_camera(phi, theta, distance, run_time = 0.5)
+        # print "1 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
 
-        phi, theta, distance = self.camera.get_spherical_coords()
-        distance *= 2.
-        self.move_camera(phi, theta, distance, run_time = 3) 
-        print "2 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
+        # phi, theta, distance = self.camera.get_spherical_coords()
+        # distance *= 2.
+        # self.move_camera(phi, theta, distance, run_time = 0.5)
+        # print "2 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
         # self.wait(3)
 
-        self.wait(3)
-        return
-
+        self.wait(0.5)
         self.remove(cube_origin)
         self.remove(cube_x)
         self.remove(cube_y)
         self.remove(cube_z)
+
+    def build_sierpinski_tetrahedron(self):
 
         base_cube = self.get_cube(1., self.cube_opacity, BLUE_E)
         shift_vec = UP + RIGHT + OUT
@@ -839,8 +843,9 @@ class CoordinateSystem(ThreeDScene):
 
         l_base_cube = [base_cube]
 
+        # phi, theta, distance = self.camera.get_spherical_coords()
         ## EVERY RECURSION
-        nb_recursion = 1
+        nb_recursion = 2
         for depth in range(nb_recursion):
             # The l_new_base_cube contains 4 instances of each base cube from l_base_cube.
             l_new_base_cube, l_sub_cube = self.super_recursion(l_base_cube, depth)
@@ -858,7 +863,10 @@ class CoordinateSystem(ThreeDScene):
             l_base_cube = l_sub_cube
 
             # Rotate around the scene
+            # theta += 2*np.pi
+            phi, theta, distance = self.camera.get_spherical_coords()
             theta += 2*np.pi
+            # theta = self.camera.get_theta() + 2*np.pi
             self.move_camera(phi, theta, distance, run_time = 2)
 
         self.wait(2)

@@ -130,7 +130,6 @@ class ThreeDCamera(CameraWithPerspective):
     def set_position(self, phi = None, theta = None, distance = None):
         point = self.get_spherical_coords(phi, theta, distance)
         self.rotation_mobject.move_to(point)
-        print "set_position point", point
         self.phi, self.theta, self.distance = point
 
     def get_view_transformation_matrix(self):
@@ -173,8 +172,6 @@ class ThreeDScene(Scene):
         **kwargs
         ):
         target_point = self.camera.get_spherical_coords(phi, theta, distance)
-        print "0 move_camera target_point", target_point
-        print "0 move_camera camera.get_spherical_coords()", self.camera.get_spherical_coords()
         movement = ApplyMethod(
             self.camera.rotation_mobject.move_to,
             target_point,
@@ -185,8 +182,6 @@ class ThreeDScene(Scene):
             self.remove(self.ambient_camera_rotation)
         self.play(movement, *added_anims)
         target_point = self.camera.get_spherical_coords(phi, theta, distance)
-        print "1 move_camera target_point", target_point
-        print "1 move_camera camera.get_spherical_coords()", self.camera.get_spherical_coords()
         if is_camera_rotating:
             self.add(self.ambient_camera_rotation)
 
