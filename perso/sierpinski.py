@@ -782,10 +782,12 @@ class CoordinateSystem(ThreeDScene):
         # theta += 3*2*np.pi/8
         # self.camera.set_position(phi, theta, distance)
 
+        angle_factor = 0.9
+
         title = TextMobject("Coordinate system")
         # title.to_edge(UP)
         title.to_edge(5*IN)
-        title.rotate(np.pi/2*0.7, RIGHT)
+        title.rotate(np.pi/2*angle_factor, RIGHT)
         title.rotate(-5*np.pi/4, OUT)
         self.add(title)
         
@@ -796,7 +798,7 @@ class CoordinateSystem(ThreeDScene):
         # print "1 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
         # self.wait(1)
 
-        phi   += 2*np.pi/4*0.7
+        phi   += 2*np.pi/4*angle_factor
         theta += 3*2*np.pi/8
         self.move_camera(phi, theta, distance, run_time = 0.3) 
         print "2 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
@@ -824,51 +826,42 @@ class CoordinateSystem(ThreeDScene):
         self.remove(cube_y)
         self.remove(cube_z)
 
-        cube_base = self.get_cube(1., self.cube_opacity, BLUE)
+        base_cube = self.get_cube(1., self.cube_opacity, BLUE_E)
         shift_vec = UP + RIGHT + OUT
         shift_vec /= np.linalg.norm(shift_vec)
-        shift_vec *= np.sqrt(3.) * 0.5
-        cube_base.shift(1. * shift_vec)
-        print "cube_base.get_width()", cube_base.get_width()
-        self.add(cube_base)
-        self.wait(0.5)
+        shift_vec *= np.sqrt(3.) * base_cube.get_width() * 0.5
+        base_cube.shift(shift_vec)
+        # self.add(base_cube)
+        # self.wait(0.5)
 
-        l_base_cube = [cube_base]
+        l_base_cube = [base_cube]
 
-        ## RECURSION 1
-        self.remove(*l_base_cube)
-        l_base_cube, l_sub_cube = self.super_recursion(l_base_cube)
+        ## EVERY RECURSION
+        nb_recursion = 3
+        for depth in range(nb_recursion):
+            # The l_new_base_cube contains 4 instances of each base cube from l_base_cube.
+            l_new_base_cube, l_sub_cube = self.super_recursion(l_base_cube, depth)
 
-        self.play(*[Transform(base_cube, sub_cube) for
-                    base_cube, sub_cube in zip(l_base_cube, l_sub_cube)])
+            # Remplace each base cube by 4 instances of them in the scene.
+            self.remove(*l_base_cube)
+            self.add(*l_new_base_cube)
 
-        theta += 2*np.pi
-        self.move_camera(phi, theta, distance, run_time = 3)
+            l_base_cube = l_new_base_cube
 
-        ## RECURSION 2
-        self.remove(*l_base_cube)
-        l_base_cube, l_sub_cube = self.super_recursion(l_base_cube)
+            self.play(*[ReplacementTransform(base_cube, sub_cube)
+                        for base_cube, sub_cube in zip(l_base_cube, l_sub_cube)])
 
-        self.play(*[Transform(base_cube, sub_cube) for
-                    base_cube, sub_cube in zip(l_base_cube, l_sub_cube)])
+            # Update the base cubes list
+            l_base_cube = l_sub_cube
 
-        theta += 2*np.pi
-        self.move_camera(phi, theta, distance, run_time = 3)
-
-        ## RECURSION 3
-        self.remove(*l_base_cube)
-        l_base_cube, l_sub_cube = self.super_recursion(l_base_cube)
-
-        self.play(*[Transform(base_cube, sub_cube) for
-                    base_cube, sub_cube in zip(l_base_cube, l_sub_cube)])
-
-        theta += 2*np.pi
-        self.move_camera(phi, theta, distance, run_time = 3)
+            # Rotate around the scene
+            theta += 2*np.pi
+            self.move_camera(phi, theta, distance, run_time = 2)
 
         self.wait(2)
 
 
-    def super_recursion(self, l_cube_base):
+    def super_recursion(self, l_base_cube, depth):
         l_color = [BLUE,
                    PURPLE_A,
                    RED,
@@ -878,21 +871,37 @@ class CoordinateSystem(ThreeDScene):
                        OUT + DOWN + RIGHT,
                        OUT + UP + LEFT]
 
-        l_base_cube = []
-        l_sub_cube  = []
-        for cube_base in l_cube_base:
-            l_base_cube += [cube_base.deepcopy() for i in range(4)]
-            l_sub_cube  += [self.recursion(cube_base, color, shift_direction) for
-                            color, shift_direction in zip(l_color, l_direction)]
+        l_new_base_cube = []
+        l_sub_cube      = []
+        for base_cube in l_base_cube:
+            l_new_base_cube += [base_cube.deepcopy() for i in range(4)]
+            l_sub_cube      += [self.recursion(base_cube, color, shift_direction, depth) for
+                                color, shift_direction in zip(l_color, l_direction)]
 
-        return l_base_cube, l_sub_cube
+        return l_new_base_cube, l_sub_cube
 
-    def recursion(self, cube_base, color, shift_direction):
-        cube = cube_base.deepcopy()
+    def recursion(self, base_cube, target_color, shift_direction, depth):
+        fill_color = None
+        if depth == 0:
+            fill_color = target_color
+        else:
+            base_fill_color_rgb   = base_cube.get_fill_color().get_rgb()
+            target_fill_color_rgb = color_to_rgb(target_color)
+
+            weigth = (0.5) ** depth
+            new_fill_color_rgb = list(map(lambda t : (t[0] + t[1]*weigth) / (1 + weigth),
+                                          zip(base_fill_color_rgb, target_fill_color_rgb)))
+
+            fill_color = rgb_to_hex(new_fill_color_rgb)
+
+        cube = base_cube.deepcopy()
+
         cube.scale(0.5)
-        cube.set_style_data(fill_color = color)
+        stroke_width = 0.5 * cube.stroke_width
+        cube.set_style_data(fill_color   = fill_color,
+                            stroke_width = stroke_width)
 
-        shift_vec = shift_direction
+        shift_vec  = shift_direction
         shift_vec /= np.linalg.norm(shift_vec)
         shift_vec *= np.sqrt(3.) * cube.get_width() * 0.5
         cube.shift(shift_vec)
@@ -902,23 +911,22 @@ class CoordinateSystem(ThreeDScene):
     def get_cube(self, side_length, cube_opacity, fill_color):
         cube = Cube(fill_opacity = cube_opacity, stroke_width = self.stroke_width,
                     side_length = side_length, fill_color = fill_color)
-        # cube.gradient_highlight(*self.cube_colors)
 
-        pose_matrix = self.get_pose_matrix()
-        cube.apply_function(
-            lambda p : np.dot(p, pose_matrix.T),
-            # maintain_smoothness = False
-            # maintain_smoothness = True
-        )
+        # pose_matrix = self.get_pose_matrix()
+        # cube.apply_function(
+        #     lambda p : np.dot(p, pose_matrix.T),
+        #     # maintain_smoothness = False
+        #     # maintain_smoothness = True
+        # )
         return cube
 
-    def get_pose_matrix(self):
-        # return np.dot(
-        #     rotation_matrix(np.pi/8, UP),
-        #     rotation_matrix(np.pi/24, RIGHT)
-        #     # rotation_matrix(np.pi/8, LEFT)
-        # )
-        return rotation_matrix(0, UP)
+    # def get_pose_matrix(self):
+    #     # return np.dot(
+    #     #     rotation_matrix(np.pi/8, UP),
+    #     #     rotation_matrix(np.pi/24, RIGHT)
+    #     #     # rotation_matrix(np.pi/8, LEFT)
+    #     # )
+    #     return rotation_matrix(0, UP)
 
 class GroupOfCubeSymmetries(ThreeDScene):
     CONFIG = {
