@@ -39,6 +39,8 @@ class ThreeDCamera(CameraWithPerspective):
         self.unit_sun_vect = self.sun_vect/np.linalg.norm(self.sun_vect)
         ## Lives in the phi-theta-distance space
         self.rotation_mobject = VectorizedPoint()
+        self.maybe_center = VectorizedPoint()
+        print "init self.maybe_center.points[0]", self.maybe_center.points[0]
         self.set_position(self.phi, self.theta, self.distance)
 
     def get_color(self, method):
@@ -139,9 +141,58 @@ class ThreeDCamera(CameraWithPerspective):
         )
 
     def points_to_pixel_coords(self, points):
+        # import traceback, sys; print "IN points_to_pixel_coords"; traceback.print_stack(file=sys.stdout); print "IN points_to_pixel_coords"
+        # print "points_to_pixel_coords self.rotation_mobject.points[0]", self.rotation_mobject.points[0]
+        # exit(0)
+
         matrix = self.get_view_transformation_matrix()
-        new_points = np.dot(points, matrix.T)
+        # new_points = np.dot(points, matrix.T)
+
+        new_points = np.array(points)
+
+        # center_of_rotation = np.array([0., 0, 5])
+        # self.space_center = np.array([0., 0, 1])
+        # new_points = new_points - center_of_rotation
+        # new_points = new_points - self.space_center
+
+        self.space_center = self.maybe_center.points[0]
+        print "points_to_pixel_coords self.maybe_center.points[0]", self.maybe_center.points[0]
+
+        new_points = np.dot(new_points, matrix.T)
+
+        # new_points = new_points + center_of_rotation
+        # new_points = new_points + self.space_center
+
+        # print "points[:2]    ", points[:2]
+        # print "new_points[:2]", new_points[:2]
+        # exit(0)
+
+        # distance_ratios = np.divide(
+        #     self.camera_distance,
+        #     self.camera_distance - new_points[:,2]
+        # )
+        # scale_factors = interpolate(0, 1, distance_ratios)
+        # for i in 0, 1:
+        #     new_points[:,i] *= scale_factors
+
+        # new_points = CameraWithPerspective.points_to_pixel_coords(self, new_points)
+
         return Camera.points_to_pixel_coords(self, new_points)
+
+        # result = np.zeros((len(points), 2))
+        # ph, pw = self.pixel_shape
+        # sh, sw = self.space_shape
+        # width_mult  = pw/sw/2
+        # width_add   = pw/2        
+        # height_mult = ph/sh/2
+        # height_add  = ph/2
+        # #Flip on y-axis as you go
+        # height_mult *= -1
+
+        # result[:,0] = points[:,0]*width_mult + width_add
+        # result[:,1] = points[:,1]*height_mult + height_add
+        # return result.astype('int')
+
 
 class ThreeDScene(Scene):
     CONFIG = {
@@ -168,6 +219,7 @@ class ThreeDScene(Scene):
     def move_camera(
         self, 
         phi = None, theta = None, distance = None,
+        space_center = None,
         added_anims = [],
         **kwargs
         ):
@@ -177,10 +229,28 @@ class ThreeDScene(Scene):
             target_point,
             **kwargs
         )
+
+        # print "move_camera kwargs", kwargs
+        # if space_center is None:
+        #     space_center = self.camera.space_center
+        # movement_center = ApplyMethod(
+        #     self.camera.rotation_mobject.move_to,
+        #     target_point,
+        #     **kwargs
+        # )
+
+        target_center = np.array([0., 0, 1])
+        movement_center = ApplyMethod(
+            self.camera.maybe_center.move_to,
+            target_center,
+            **kwargs
+        )
+        
         is_camera_rotating = self.ambient_camera_rotation in self.continual_animations
         if is_camera_rotating:
             self.remove(self.ambient_camera_rotation)
-        self.play(movement, *added_anims)
+        # print "move_camera self.camera.rotation_mobject.points[0]", self.camera.rotation_mobject.points[0]
+        self.play(movement, movement_center, *added_anims)
         target_point = self.camera.get_spherical_coords(phi, theta, distance)
         if is_camera_rotating:
             self.add(self.ambient_camera_rotation)

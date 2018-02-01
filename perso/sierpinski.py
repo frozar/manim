@@ -769,29 +769,70 @@ class CoordinateSystem(ThreeDScene):
         "cube_colors" : [BLUE],
         "stroke_width" : 1,
         "side_length" : 0.3,
+        "angle_factor" : 0.9,
         # "camera_class": CameraWithPerspective,
         # "camera_class": ThreeDCamera,
     }
     def construct(self):
-        self.build_coordinate_system()
-        self.build_sierpinski_tetrahedron()
+        self.build_coordinate_system_cube()
+        # self.build_coordinate_system()
+        # self.build_sierpinski_tetrahedron()
         
-        # import traceback; print "IN CoordinateSystem"; traceback.print_stack(); print "IN CoordinateSystem"
-        # self.camera.camera_distance = 1,
-        # self.camera.__init__(phi = 0, theta = 0)
+        # import traceback, sys; print "IN CoordinateSystem"; traceback.print_stack(file=sys.stdout); print "IN CoordinateSystem"
 
-        # phi, theta, distance = self.camera.get_spherical_coords()
-        # phi += 2*np.pi/4
-        # theta += 3*2*np.pi/8
-        # self.camera.set_position(phi, theta, distance)
+    def camera_setup(self):
+        default_camera = ThreeDCamera()
+        phi, theta, distance = default_camera.get_spherical_coords()
+        phi      += 2*np.pi/4*self.angle_factor
+        theta    += 3*2*np.pi/8
+        distance /= 2.
+        # self.move_camera(phi, theta, distance, run_time = 0.5)
+        self.set_camera_position(phi, theta, distance)
+
+    def build_coordinate_system_cube(self):
+        # self.camera_setup()
+        # self.camera.space_center = np.array([0., 0, 1])
+
+        phi, theta, distance = ThreeDCamera().get_spherical_coords()
+        distance /= 2.
+        self.set_camera_position(phi, theta, distance)
+
+
+        cube_origin = self.get_cube(1., self.cube_opacity, WHITE)
+        self.add(cube_origin)
+
+        orientations = [IN, OUT, LEFT, RIGHT, UP, DOWN]
+        for mob, orient in zip(cube_origin.family_members_with_points(), orientations):
+            # print "id(mob)", id(mob)
+            if np.array_equal(orient, RIGHT):
+                mob.set_style_data(fill_color = RED)
+            elif np.array_equal(orient, UP):
+                mob.set_style_data(fill_color = GREEN)
+            elif np.array_equal(orient, OUT):
+                mob.set_style_data(fill_color = BLUE)
+
+        # Rotate around the scene
+        phi, theta, distance = self.camera.get_spherical_coords()
+        phi   += 2*np.pi/4*self.angle_factor
+        theta += 3*2*np.pi/8
+        # theta += np.pi/4.
+        # self.move_camera(phi, theta, distance, run_time = 5)
+        self.set_camera_position(phi, theta, distance)
+
+        # theta += 2*np.pi
+        # self.move_camera(phi, theta, distance, run_time = 5)
+        # phi += 2*np.pi
+        # self.move_camera(phi, theta, distance, run_time = 5)
+
+        theta += 2*np.pi
+        self.move_camera(phi, theta, distance, aligned_edge = np.array([0., 0, 1]), run_time = 5)
 
     def build_coordinate_system(self):
-        angle_factor = 0.9
+        self.camera_setup()
 
         title = TextMobject("Coordinate system")
-        # title.to_edge(UP)
         title.to_edge(3*IN)
-        title.rotate(np.pi/2*angle_factor, RIGHT)
+        title.rotate(np.pi/2*self.angle_factor, RIGHT)
         title.rotate(-5*np.pi/4, OUT)
         self.add(title)
 
@@ -811,27 +852,20 @@ class CoordinateSystem(ThreeDScene):
         cube_z.shift(OUT)
         self.add(cube_z)
 
-        # print "0 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
+        # self.wait(1)
+
+        # Rotate around the scene
         phi, theta, distance = self.camera.get_spherical_coords()
-        phi      += 2*np.pi/4*angle_factor
-        theta    += 3*2*np.pi/8
-        distance /= 2.
-        self.move_camera(phi, theta, distance, run_time = 0.5)
-        # print "1 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
+        theta += 2*np.pi
+        self.move_camera(phi, theta, distance, run_time = 2)
 
-        # phi, theta, distance = self.camera.get_spherical_coords()
-        # distance *= 2.
-        # self.move_camera(phi, theta, distance, run_time = 0.5)
-        # print "2 self.camera.get_spherical_coords()", self.camera.get_spherical_coords()
-        # self.wait(3)
-
-        self.wait(0.5)
         self.remove(cube_origin)
         self.remove(cube_x)
         self.remove(cube_y)
         self.remove(cube_z)
 
     def build_sierpinski_tetrahedron(self):
+        self.camera_setup()
 
         base_cube = self.get_cube(1., self.cube_opacity, BLUE_E)
         shift_vec = UP + RIGHT + OUT
@@ -863,10 +897,8 @@ class CoordinateSystem(ThreeDScene):
             l_base_cube = l_sub_cube
 
             # Rotate around the scene
-            # theta += 2*np.pi
             phi, theta, distance = self.camera.get_spherical_coords()
             theta += 2*np.pi
-            # theta = self.camera.get_theta() + 2*np.pi
             self.move_camera(phi, theta, distance, run_time = 2)
 
         self.wait(2)

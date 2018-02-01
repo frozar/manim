@@ -420,11 +420,17 @@ class Scene(Container):
         self.update_frame(excluded_mobjects = moving_mobjects)
         static_image = self.get_frame()
         for t in self.get_animation_time_progression(animations):
+            print "0   play self.camera.rotation_mobject.points[0]", self.camera.rotation_mobject.points[0]
             for animation in animations:
                 animation.update(t / animation.run_time)
+            print "0.1 play self.camera.rotation_mobject.points[0]", self.camera.rotation_mobject.points[0]
             self.continual_update()
+            # print "0.2 play self.camera.rotation_mobject.points[0]", self.camera.rotation_mobject.points[0]
             self.update_frame(moving_mobjects, static_image)
+            # print "0.3 play self.camera.rotation_mobject.points[0]", self.camera.rotation_mobject.points[0]
             self.add_frames(self.get_frame())
+            # print "1 play self.camera.rotation_mobject.points[0]", self.camera.rotation_mobject.points[0]
+            print ""
         self.add(*moving_mobjects)
         self.mobjects_from_last_animation = moving_mobjects
         self.clean_up_animations(*animations)
