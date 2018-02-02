@@ -821,21 +821,6 @@ class CoordinateSystem(ThreeDScene):
             # # print mob.toto()
             # i_dbg += 1
 
-        # line_x = Line(start, end, color = RED)
-        # self.add(line_x)
-        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
-        # self.add(arrow_x)
-        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
-        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
-
-        # landmark = [Arrow(ORIGIN, 2 * orientation, color = color, normal_vector = normal_vect)
-        #             for orientation, color, normal_vect in
-        #             zip([RIGHT, UP, OUT], [RED, GREEN, BLUE], [OUT, OUT, UP])]
-        landmark = [Arrow(ORIGIN, 2 * orientation, color = color, buff = 0.)
-                    for orientation, color in
-                    zip([RIGHT, UP, OUT], [RED, GREEN, BLUE])]
-        self.add(*landmark)
-
         phi, theta, distance = ThreeDCamera().get_spherical_coords()
         distance /= 2.
         # self.set_camera_position(phi, theta, distance)
@@ -850,6 +835,29 @@ class CoordinateSystem(ThreeDScene):
                                  center_x = cube_center[0],
                                  center_y = cube_center[1],
                                  center_z = cube_center[2])
+
+        normal_vect = self.camera.spherical_coords_to_point(*self.camera.get_spherical_coords())
+        landmark = [Arrow(ORIGIN, 2 * orientation, color = color,
+                          buff = 0., normal_vector = normal_vect,
+                          rectangular_stem_width = 0.05,
+                          max_stem_width_to_tip_width_ratio = 0.3,
+                          tip_width_to_length_ratio = 0.25)
+                    for orientation, color in
+                    zip([RIGHT, UP, OUT], [RED, GREEN, BLUE])]
+        self.add(*landmark)
+
+        position = [1.7 * RIGHT + 0.2 * IN, 1.7 * UP + 0.2 * IN, 1.7 * OUT + 0.2 * UP]
+        labels = [self.get_label(char, color, position)
+                  for char, color, position in
+                  zip(["x", "y", "z"], [RED, GREEN, BLUE], position)]
+        self.add(*labels)
+
+        # line_x = Line(start, end, color = RED)
+        # self.add(line_x)
+        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
+        # self.add(arrow_x)
+        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
+        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
 
         self.wait()
 
@@ -974,6 +982,13 @@ class CoordinateSystem(ThreeDScene):
 
         self.wait(2)
 
+    def get_label(self, character, color, position):
+        label = TextMobject("$$\overrightarrow{" + character + "}$$", fill_color = color)
+        label.move_to(position)
+        label.scale(0.5)
+        label.rotate(np.pi/2*self.angle_factor, RIGHT)
+        label.rotate(-5*np.pi/4, OUT)
+        return label
 
     def super_recursion(self, l_base_cube, depth):
         l_color = [BLUE,
