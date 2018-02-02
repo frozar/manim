@@ -797,12 +797,15 @@ class CoordinateSystem(ThreeDScene):
         distance /= 2.
         self.set_camera_position(phi, theta, distance)
 
-
         cube_origin = self.get_cube(1., self.cube_opacity, WHITE)
-        shift_vec = UP + RIGHT + OUT
+        shift_vec  = UP + RIGHT + OUT
         shift_vec /= np.linalg.norm(shift_vec)
         shift_vec *= np.sqrt(3.) * cube_origin.get_width() * 0.5
+        cube_origin.shift(shift_vec)
         self.add(cube_origin)
+
+        print "cube_origin.get_center()", cube_origin.get_center()
+        cube_center = cube_origin.get_center()
 
         orientations = [IN, OUT, LEFT, RIGHT, UP, DOWN]
         for mob, orient in zip(cube_origin.family_members_with_points(), orientations):
@@ -827,8 +830,41 @@ class CoordinateSystem(ThreeDScene):
         # phi += 2*np.pi
         # self.move_camera(phi, theta, distance, run_time = 5)
 
+        # theta += 2*np.pi
+        # self.move_camera(phi, theta, distance,
+        #                  target_center = np.array([0., 0, -0.5]),
+        #                  run_time = 5)
+        self.move_camera(phi, theta, distance,
+                         center_x = cube_center[0],
+                         center_y = cube_center[1],
+                         center_z = cube_center[2],
+                         run_time = 2)
+
+        cube_x = self.get_cube(1., self.cube_opacity, RED)
+        shift_vec  = 2 * RIGHT
+        cube_x.shift(shift_vec)
+        self.add(cube_x)
+
+        cube_y = self.get_cube(1., self.cube_opacity, GREEN)
+        shift_vec  = 2 * UP
+        cube_y.shift(shift_vec)
+        self.add(cube_y)
+
+        cube_z = self.get_cube(1., self.cube_opacity, BLUE)
+        shift_vec  = 2 * OUT
+        cube_z.shift(shift_vec)
+        self.add(cube_z)
+
+        self.wait()
+
+        distance *= 2
+        self.move_camera(phi, theta, distance,
+                         run_time = 2)
         theta += 2*np.pi
-        self.move_camera(phi, theta, distance, target_center = np.array([0., 0, -0.5]), run_time = 5)
+        self.move_camera(phi, theta, distance,
+                         run_time = 4)
+        # self.wait(3)
+        
 
     def build_coordinate_system(self):
         self.camera_setup()
@@ -871,7 +907,7 @@ class CoordinateSystem(ThreeDScene):
         self.camera_setup()
 
         base_cube = self.get_cube(1., self.cube_opacity, BLUE_E)
-        shift_vec = UP + RIGHT + OUT
+        shift_vec  = UP + RIGHT + OUT
         shift_vec /= np.linalg.norm(shift_vec)
         shift_vec *= np.sqrt(3.) * base_cube.get_width() * 0.5
         base_cube.shift(shift_vec)
