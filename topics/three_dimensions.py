@@ -86,6 +86,7 @@ class ThreeDCamera(CameraWithPerspective):
         camera_point = self.spherical_coords_to_point(
             *self.get_spherical_coords()
         )
+        camera_point += self.space_center
         def z_cmp(*vmobs):
             #Compare to three dimensional mobjects based on 
             #how close they are to the camera
@@ -140,10 +141,14 @@ class ThreeDCamera(CameraWithPerspective):
             z = curr_z
         return np.array([x, y, z])
 
-    def set_position(self, phi = None, theta = None, distance = None):
+    def set_position(self, phi = None, theta = None, distance = None,
+                     center_x = None, center_y = None, center_z = None):
         point = self.get_spherical_coords(phi, theta, distance)
         self.rotation_mobject.move_to(point)
         self.phi, self.theta, self.distance = point
+        center_of_rotation = self.get_center_of_rotation(center_x, center_y, center_z)
+        self.moving_center.move_to(center_of_rotation)
+        self.space_center = self.moving_center.points[0]
 
     def get_view_transformation_matrix(self):
         return (self.default_distance / self.get_distance()) * np.dot(
@@ -164,8 +169,9 @@ class ThreeDScene(Scene):
         "ambient_camera_rotation" : None,
     }
 
-    def set_camera_position(self, phi = None, theta = None, distance = None):
-        self.camera.set_position(phi, theta, distance)
+    def set_camera_position(self, phi = None, theta = None, distance = None,
+                            center_x = None, center_y = None, center_z = None):
+        self.camera.set_position(phi, theta, distance, center_x, center_y, center_z)
 
     def begin_ambient_camera_rotation(self, rate = 0.01):
         self.ambient_camera_rotation = AmbientMovement(
@@ -181,9 +187,9 @@ class ThreeDScene(Scene):
         self.ambient_camera_rotation = None
 
     def move_camera(
-        self, 
+        self,
         phi = None, theta = None, distance = None,
-        center_x = None, center_y = None, center_z = None, 
+        center_x = None, center_y = None, center_z = None,
         added_anims = [],
         **kwargs
         ):

@@ -374,7 +374,7 @@ class VMobject(Mobject):
         if submobject.is_subpath:
             return VectorizedPoint(submobject.points[0])
         return submobject.copy()
-    
+
     def interpolate_color(self, mobject1, mobject2, alpha):
         attrs = [
             "stroke_rgb", 

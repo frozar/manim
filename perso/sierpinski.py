@@ -793,10 +793,6 @@ class CoordinateSystem(ThreeDScene):
         # self.camera_setup()
         # self.camera.space_center = np.array([0., 0, 1])
 
-        phi, theta, distance = ThreeDCamera().get_spherical_coords()
-        distance /= 2.
-        self.set_camera_position(phi, theta, distance)
-
         cube_origin = self.get_cube(1., self.cube_opacity, WHITE)
         shift_vec  = UP + RIGHT + OUT
         shift_vec /= np.linalg.norm(shift_vec)
@@ -804,10 +800,8 @@ class CoordinateSystem(ThreeDScene):
         cube_origin.shift(shift_vec)
         self.add(cube_origin)
 
-        print "cube_origin.get_center()", cube_origin.get_center()
-        cube_center = cube_origin.get_center()
-
         orientations = [IN, OUT, LEFT, RIGHT, UP, DOWN]
+        i_dbg = 0
         for mob, orient in zip(cube_origin.family_members_with_points(), orientations):
             # print "id(mob)", id(mob)
             if np.array_equal(orient, RIGHT):
@@ -816,14 +810,52 @@ class CoordinateSystem(ThreeDScene):
                 mob.set_style_data(fill_color = GREEN)
             elif np.array_equal(orient, OUT):
                 mob.set_style_data(fill_color = BLUE)
+            elif np.array_equal(orient, LEFT):
+                mob.set_style_data(fill_color = BLUE_A)
 
-        # Rotate around the scene
-        phi, theta, distance = self.camera.get_spherical_coords()
+            # print "i", i_dbg
+            # if np.array_equal(orient, LEFT):
+            #     print "LEFT orientation"
+            # # print mob.get_critical_point()
+            # print mob.get_all_points()
+            # # print mob.toto()
+            # i_dbg += 1
+
+        # line_x = Line(start, end, color = RED)
+        # self.add(line_x)
+        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
+        # self.add(arrow_x)
+        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
+        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
+
+        # landmark = [Arrow(ORIGIN, 2 * orientation, color = color, normal_vector = normal_vect)
+        #             for orientation, color, normal_vect in
+        #             zip([RIGHT, UP, OUT], [RED, GREEN, BLUE], [OUT, OUT, UP])]
+        landmark = [Arrow(ORIGIN, 2 * orientation, color = color)
+                    for orientation, color in
+                    zip([RIGHT, UP, OUT], [RED, GREEN, BLUE])]
+        # self.add(*landmark)
+
+        phi, theta, distance = ThreeDCamera().get_spherical_coords()
+        distance /= 2.
+        # self.set_camera_position(phi, theta, distance)
+        # phi, theta, distance = self.camera.get_spherical_coords()
         phi   += 2*np.pi/4*self.angle_factor
         theta += 3*2*np.pi/8
-        # theta += np.pi/4.
+        distance /= 1.1
+        # self.set_camera_position(phi, theta, distance)
+        cube_center = cube_origin.get_center()
+        print "cube_center", cube_center
+        self.set_camera_position(phi, theta, distance,
+                                 center_x = cube_center[0],
+                                 center_y = cube_center[1],
+                                 center_z = cube_center[2])
+
+        self.wait()
+
+        # theta += 2*np.pi
         # self.move_camera(phi, theta, distance, run_time = 5)
-        self.set_camera_position(phi, theta, distance)
+        return
 
         # theta += 2*np.pi
         # self.move_camera(phi, theta, distance, run_time = 5)
