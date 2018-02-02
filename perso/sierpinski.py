@@ -799,6 +799,9 @@ class CoordinateSystem(ThreeDScene):
 
 
         cube_origin = self.get_cube(1., self.cube_opacity, WHITE)
+        shift_vec = UP + RIGHT + OUT
+        shift_vec /= np.linalg.norm(shift_vec)
+        shift_vec *= np.sqrt(3.) * cube_origin.get_width() * 0.5
         self.add(cube_origin)
 
         orientations = [IN, OUT, LEFT, RIGHT, UP, DOWN]
@@ -825,7 +828,7 @@ class CoordinateSystem(ThreeDScene):
         # self.move_camera(phi, theta, distance, run_time = 5)
 
         theta += 2*np.pi
-        self.move_camera(phi, theta, distance, aligned_edge = np.array([0., 0, 1]), run_time = 5)
+        self.move_camera(phi, theta, distance, target_center = np.array([0., 0, -0.5]), run_time = 5)
 
     def build_coordinate_system(self):
         self.camera_setup()

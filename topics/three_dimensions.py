@@ -39,8 +39,8 @@ class ThreeDCamera(CameraWithPerspective):
         self.unit_sun_vect = self.sun_vect/np.linalg.norm(self.sun_vect)
         ## Lives in the phi-theta-distance space
         self.rotation_mobject = VectorizedPoint()
-        self.maybe_center = VectorizedPoint()
-        print "init self.maybe_center.points[0]", self.maybe_center.points[0]
+        self.moving_center = VectorizedPoint()
+        # print "init self.maybe_center.points[0]", self.maybe_center.points[0]
         self.set_position(self.phi, self.theta, self.distance)
 
     def get_color(self, method):
@@ -155,8 +155,8 @@ class ThreeDCamera(CameraWithPerspective):
         # new_points = new_points - center_of_rotation
         # new_points = new_points - self.space_center
 
-        self.space_center = self.maybe_center.points[0]
-        print "points_to_pixel_coords self.maybe_center.points[0]", self.maybe_center.points[0]
+        self.space_center = self.moving_center.points[0]
+        # print "points_to_pixel_coords self.maybe_center.points[0]", self.maybe_center.points[0]
 
         new_points = np.dot(new_points, matrix.T)
 
@@ -219,7 +219,7 @@ class ThreeDScene(Scene):
     def move_camera(
         self, 
         phi = None, theta = None, distance = None,
-        space_center = None,
+        target_center = None,
         added_anims = [],
         **kwargs
         ):
@@ -239,9 +239,10 @@ class ThreeDScene(Scene):
         #     **kwargs
         # )
 
-        target_center = np.array([0., 0, 1])
+        if target_center is None:
+            target_center = self.camera.space_center
         movement_center = ApplyMethod(
-            self.camera.maybe_center.move_to,
+            self.camera.moving_center.move_to,
             target_center,
             **kwargs
         )
