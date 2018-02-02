@@ -831,10 +831,10 @@ class CoordinateSystem(ThreeDScene):
         # landmark = [Arrow(ORIGIN, 2 * orientation, color = color, normal_vector = normal_vect)
         #             for orientation, color, normal_vect in
         #             zip([RIGHT, UP, OUT], [RED, GREEN, BLUE], [OUT, OUT, UP])]
-        landmark = [Arrow(ORIGIN, 2 * orientation, color = color)
+        landmark = [Arrow(ORIGIN, 2 * orientation, color = color, buff = 0.)
                     for orientation, color in
                     zip([RIGHT, UP, OUT], [RED, GREEN, BLUE])]
-        # self.add(*landmark)
+        self.add(*landmark)
 
         phi, theta, distance = ThreeDCamera().get_spherical_coords()
         distance /= 2.
@@ -853,8 +853,8 @@ class CoordinateSystem(ThreeDScene):
 
         self.wait()
 
-        # theta += 2*np.pi
-        # self.move_camera(phi, theta, distance, run_time = 5)
+        theta += 2*np.pi
+        self.move_camera(phi, theta, distance, run_time = 5)
         return
 
         # theta += 2*np.pi

@@ -159,9 +159,6 @@ class Mobject(Container):
 
     def rotate(self, angle, axis = OUT, **kwargs):
         rot_matrix = rotation_matrix(angle, axis)
-        # print "rot_matrix", rot_matrix
-        # print "angle", angle
-        # print "axis", axis
         self.apply_points_function_about_point(
             lambda points : np.dot(points, rot_matrix.T),
             **kwargs
@@ -246,10 +243,7 @@ class Mobject(Container):
     def apply_points_function_about_point(self, func, about_point = None, about_edge = ORIGIN):
         if about_point is None:
             about_point = self.get_critical_point(about_edge)
-        # print "about_point", about_point
-        # print "self.family_members_with_points()", self.family_members_with_points()
         for mob in self.family_members_with_points():
-            # print "mob.points", mob.points
             mob.points -= about_point
             mob.points = func(mob.points)
             mob.points += about_point
