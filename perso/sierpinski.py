@@ -822,88 +822,36 @@ class CoordinateSystem(ThreeDScene):
             # i_dbg += 1
 
         phi, theta, distance = ThreeDCamera().get_spherical_coords()
+        phi      += 2*np.pi/4*self.angle_factor
+        theta    += 3*2*np.pi/8
         distance /= 2.
-        # self.set_camera_position(phi, theta, distance)
-        # phi, theta, distance = self.camera.get_spherical_coords()
-        phi   += 2*np.pi/4*self.angle_factor
-        theta += 3*2*np.pi/8
         distance /= 1.1
-        # self.set_camera_position(phi, theta, distance)
         cube_center = cube_origin.get_center()
-        print "cube_center", cube_center
         self.set_camera_position(phi, theta, distance,
                                  center_x = cube_center[0],
                                  center_y = cube_center[1],
                                  center_z = cube_center[2])
 
-        normal_vect = self.camera.spherical_coords_to_point(*self.camera.get_spherical_coords())
-        landmark = [Arrow(ORIGIN, 2 * orientation, color = color,
-                          buff = 0., normal_vector = normal_vect,
-                          rectangular_stem_width = 0.05,
-                          max_stem_width_to_tip_width_ratio = 0.3,
-                          tip_width_to_length_ratio = 0.25)
-                    for orientation, color in
-                    zip([RIGHT, UP, OUT], [RED, GREEN, BLUE])]
-        self.add(*landmark)
+        # Landmark vectors
+        landmark_vectors = self.get_landmark_vectors()
+        self.add(*landmark_vectors)
 
-        position = [1.7 * RIGHT + 0.2 * IN, 1.7 * UP + 0.2 * IN, 1.7 * OUT + 0.2 * UP]
-        labels = [self.get_label(char, color, position)
-                  for char, color, position in
-                  zip(["x", "y", "z"], [RED, GREEN, BLUE], position)]
-        self.add(*labels)
+        # Landmark labels
+        landmark_labels = self.get_landmark_labels()
+        self.add(*landmark_labels)
 
-        # line_x = Line(start, end, color = RED)
-        # self.add(line_x)
-        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
-        # self.add(arrow_x)
-        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
-        # arrow_x = Arrow(ORIGIN, 2 * RIGHT, color = RED)
-
+        # Dashed lines in the XY-plane
+        xy_plane_dashed_lines = self.get_xy_plane_dashed_lines()
+        self.add(*xy_plane_dashed_lines)
         self.wait()
 
-        theta += 2*np.pi
-        self.move_camera(phi, theta, distance, run_time = 5)
-        return
-
-        # theta += 2*np.pi
-        # self.move_camera(phi, theta, distance, run_time = 5)
-        # phi += 2*np.pi
-        # self.move_camera(phi, theta, distance, run_time = 5)
-
-        # theta += 2*np.pi
-        # self.move_camera(phi, theta, distance,
-        #                  target_center = np.array([0., 0, -0.5]),
-        #                  run_time = 5)
-        self.move_camera(phi, theta, distance,
-                         center_x = cube_center[0],
-                         center_y = cube_center[1],
-                         center_z = cube_center[2],
-                         run_time = 2)
-
-        cube_x = self.get_cube(1., self.cube_opacity, RED)
-        shift_vec  = 2 * RIGHT
-        cube_x.shift(shift_vec)
-        self.add(cube_x)
-
-        cube_y = self.get_cube(1., self.cube_opacity, GREEN)
-        shift_vec  = 2 * UP
-        cube_y.shift(shift_vec)
-        self.add(cube_y)
-
-        cube_z = self.get_cube(1., self.cube_opacity, BLUE)
-        shift_vec  = 2 * OUT
-        cube_z.shift(shift_vec)
-        self.add(cube_z)
-
-        self.wait()
-
-        distance *= 2
+        distance *= 1.5
         self.move_camera(phi, theta, distance,
                          run_time = 2)
+
         theta += 2*np.pi
         self.move_camera(phi, theta, distance,
                          run_time = 4)
-        # self.wait(3)
         
 
     def build_coordinate_system(self):
@@ -982,13 +930,46 @@ class CoordinateSystem(ThreeDScene):
 
         self.wait(2)
 
-    def get_label(self, character, color, position):
+    def get_landmark_vectors(self):
+        normal_vect = self.camera.spherical_coords_to_point(*self.camera.get_spherical_coords())
+        landmark_vectors = [Arrow(ORIGIN, 2 * orientation, color = color,
+                          buff = 0., normal_vector = normal_vect,
+                          rectangular_stem_width = 0.05,
+                          max_stem_width_to_tip_width_ratio = 0.3,
+                          tip_width_to_length_ratio = 0.25)
+                    for orientation, color in
+                    zip([RIGHT, UP, OUT], [RED, GREEN, BLUE])]
+        return landmark_vectors
+
+    def get_landmark_labels(self):
+        position        = [1.7 * RIGHT + 0.2 * IN, 1.7 * UP + 0.2 * IN, 1.7 * OUT + 0.2 * UP]
+        landmark_labels = [self.get_one_label(char, color, position)
+                           for char, color, position in
+                           zip(["x", "y", "z"], [RED, GREEN, BLUE], position)]
+        return landmark_labels
+        
+    def get_one_label(self, character, color, position):
         label = TextMobject("$$\overrightarrow{" + character + "}$$", fill_color = color)
         label.move_to(position)
         label.scale(0.5)
         label.rotate(np.pi/2*self.angle_factor, RIGHT)
         label.rotate(-5*np.pi/4, OUT)
         return label
+
+    def get_xy_plane_dashed_lines(self):
+        factor_xy = 2
+        x_end = factor_xy * RIGHT
+        y_end = factor_xy * UP
+        xy_plane_dashed_lines = []
+        for vect_end, offset in [(x_end, DOWN), (y_end, LEFT)]:
+            for f in range(-factor_xy, factor_xy):
+                start = 0.5*(-vect_end) + f*offset
+                end   = vect_end + f*offset
+                xy_plane_dashed_lines += DashedLine(start, end,
+                                                    stroke_width = 0.5,
+                                                    dashed_segment_length = 0.25)
+
+        return xy_plane_dashed_lines
 
     def super_recursion(self, l_base_cube, depth):
         l_color = [BLUE,
