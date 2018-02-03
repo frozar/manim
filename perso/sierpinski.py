@@ -774,10 +774,11 @@ class CoordinateSystem(ThreeDScene):
         # "camera_class": ThreeDCamera,
     }
     def construct(self):
-        self.build_coordinate_system_cube()
-        # self.build_coordinate_system()
-        # self.build_sierpinski_tetrahedron()
-        
+        self.build_coordinate_system()
+        # self.build_cube()
+        self.build_sierpinski_tetrahedron()
+        # self.animation()
+
         # import traceback, sys; print "IN CoordinateSystem"; traceback.print_stack(file=sys.stdout); print "IN CoordinateSystem"
 
     def camera_setup(self):
@@ -786,52 +787,16 @@ class CoordinateSystem(ThreeDScene):
         phi      += 2*np.pi/4*self.angle_factor
         theta    += 3*2*np.pi/8
         distance /= 2.
-        # self.move_camera(phi, theta, distance, run_time = 0.5)
-        self.set_camera_position(phi, theta, distance)
-
-    def build_coordinate_system_cube(self):
-        # self.camera_setup()
-        # self.camera.space_center = np.array([0., 0, 1])
-
-        cube_origin = self.get_cube(1., self.cube_opacity, WHITE)
-        shift_vec  = UP + RIGHT + OUT
-        shift_vec /= np.linalg.norm(shift_vec)
-        shift_vec *= np.sqrt(3.) * cube_origin.get_width() * 0.5
-        cube_origin.shift(shift_vec)
-        self.add(cube_origin)
-
-        orientations = [IN, OUT, LEFT, RIGHT, UP, DOWN]
-        i_dbg = 0
-        for mob, orient in zip(cube_origin.family_members_with_points(), orientations):
-            # print "id(mob)", id(mob)
-            if np.array_equal(orient, RIGHT):
-                mob.set_style_data(fill_color = RED)
-            elif np.array_equal(orient, UP):
-                mob.set_style_data(fill_color = GREEN)
-            elif np.array_equal(orient, OUT):
-                mob.set_style_data(fill_color = BLUE)
-            elif np.array_equal(orient, LEFT):
-                mob.set_style_data(fill_color = BLUE_A)
-
-            # print "i", i_dbg
-            # if np.array_equal(orient, LEFT):
-            #     print "LEFT orientation"
-            # # print mob.get_critical_point()
-            # print mob.get_all_points()
-            # # print mob.toto()
-            # i_dbg += 1
-
-        phi, theta, distance = ThreeDCamera().get_spherical_coords()
-        phi      += 2*np.pi/4*self.angle_factor
-        theta    += 3*2*np.pi/8
-        distance /= 2.
         distance /= 1.1
-        cube_center = cube_origin.get_center()
+        # self.move_camera(phi, theta, distance, run_time = 0.5)
+        # self.set_camera_position(phi, theta, distance)
+        cube_center = np.array([0.5, 0.5, 0.5])
         self.set_camera_position(phi, theta, distance,
                                  center_x = cube_center[0],
                                  center_y = cube_center[1],
                                  center_z = cube_center[2])
 
+    def build_coordinate_system(self):
         # Landmark vectors
         landmark_vectors = self.get_landmark_vectors()
         self.add(*landmark_vectors)
@@ -843,6 +808,40 @@ class CoordinateSystem(ThreeDScene):
         # Dashed lines in the XY-plane
         xy_plane_dashed_lines = self.get_xy_plane_dashed_lines()
         self.add(*xy_plane_dashed_lines)
+
+    def build_cube(self):
+        cube_origin = self.get_cube(1., self.cube_opacity, WHITE)
+        shift_vec  = UP + RIGHT + OUT
+        shift_vec /= np.linalg.norm(shift_vec)
+        shift_vec *= np.sqrt(3.) * cube_origin.get_width() * 0.5
+        cube_origin.shift(shift_vec)
+
+        orientations = [IN, OUT, LEFT, RIGHT, UP, DOWN]
+        for mob, orient in zip(cube_origin.family_members_with_points(), orientations):
+            if np.array_equal(orient, RIGHT):
+                mob.set_style_data(fill_color = RED)
+            elif np.array_equal(orient, UP):
+                mob.set_style_data(fill_color = GREEN)
+            elif np.array_equal(orient, OUT):
+                mob.set_style_data(fill_color = BLUE)
+            elif np.array_equal(orient, LEFT):
+                mob.set_style_data(fill_color = BLUE_A)
+
+        self.add(cube_origin)
+
+    def animation(self):
+        # phi, theta, distance = ThreeDCamera().get_spherical_coords()
+        # phi      += 2*np.pi/4*self.angle_factor
+        # theta    += 3*2*np.pi/8
+        # distance /= 2.
+        # distance /= 1.1
+        # cube_center = np.array([0.5, 0.5, 0.5])
+        # self.set_camera_position(phi, theta, distance,
+        #                          center_x = cube_center[0],
+        #                          center_y = cube_center[1],
+        #                          center_z = cube_center[2])
+
+        self.camera_setup()
         self.wait()
 
         distance *= 1.5
@@ -852,44 +851,6 @@ class CoordinateSystem(ThreeDScene):
         theta += 2*np.pi
         self.move_camera(phi, theta, distance,
                          run_time = 4)
-        
-
-    def build_coordinate_system(self):
-        self.camera_setup()
-
-        title = TextMobject("Coordinate system")
-        title.to_edge(3*IN)
-        title.rotate(np.pi/2*self.angle_factor, RIGHT)
-        title.rotate(-5*np.pi/4, OUT)
-        self.add(title)
-
-        cube_origin = self.get_cube(self.side_length / 2, self.cube_opacity, WHITE)
-        self.add(cube_origin)
-        # self.play(ShowCreation(cube_origin))
-
-        cube_x = self.get_cube(self.side_length, self.cube_opacity, RED)
-        cube_x.shift(RIGHT)
-        self.add(cube_x)
-
-        cube_y = self.get_cube(self.side_length, self.cube_opacity, GREEN)
-        cube_y.shift(UP)
-        self.add(cube_y)
-
-        cube_z = self.get_cube(self.side_length, self.cube_opacity, BLUE)
-        cube_z.shift(OUT)
-        self.add(cube_z)
-
-        # self.wait(1)
-
-        # Rotate around the scene
-        phi, theta, distance = self.camera.get_spherical_coords()
-        theta += 2*np.pi
-        self.move_camera(phi, theta, distance, run_time = 2)
-
-        self.remove(cube_origin)
-        self.remove(cube_x)
-        self.remove(cube_y)
-        self.remove(cube_z)
 
     def build_sierpinski_tetrahedron(self):
         self.camera_setup()
@@ -906,10 +867,10 @@ class CoordinateSystem(ThreeDScene):
 
         # phi, theta, distance = self.camera.get_spherical_coords()
         ## EVERY RECURSION
-        nb_recursion = 2
+        nb_recursion = 5
         for depth in range(nb_recursion):
             # The l_new_base_cube contains 4 instances of each base cube from l_base_cube.
-            l_new_base_cube, l_sub_cube = self.super_recursion(l_base_cube, depth)
+            l_new_base_cube, l_sub_cube = self.recursion(l_base_cube, depth)
 
             # Remplace each base cube by 4 instances of them in the scene.
             self.remove(*l_base_cube)
@@ -926,9 +887,9 @@ class CoordinateSystem(ThreeDScene):
             # Rotate around the scene
             phi, theta, distance = self.camera.get_spherical_coords()
             theta += 2*np.pi
-            self.move_camera(phi, theta, distance, run_time = 2)
+            self.move_camera(phi, theta, distance, run_time = 3)
 
-        self.wait(2)
+        self.wait(1)
 
     def get_landmark_vectors(self):
         normal_vect = self.camera.spherical_coords_to_point(*self.camera.get_spherical_coords())
@@ -971,7 +932,7 @@ class CoordinateSystem(ThreeDScene):
 
         return xy_plane_dashed_lines
 
-    def super_recursion(self, l_base_cube, depth):
+    def recursion(self, l_base_cube, depth):
         l_color = [BLUE,
                    PURPLE_A,
                    RED,
@@ -985,12 +946,12 @@ class CoordinateSystem(ThreeDScene):
         l_sub_cube      = []
         for base_cube in l_base_cube:
             l_new_base_cube += [base_cube.deepcopy() for i in range(4)]
-            l_sub_cube      += [self.recursion(base_cube, color, shift_direction, depth) for
+            l_sub_cube      += [self.recursion_aux(base_cube, color, shift_direction, depth) for
                                 color, shift_direction in zip(l_color, l_direction)]
 
         return l_new_base_cube, l_sub_cube
 
-    def recursion(self, base_cube, target_color, shift_direction, depth):
+    def recursion_aux(self, base_cube, target_color, shift_direction, depth):
         fill_color = None
         if depth == 0:
             fill_color = target_color
