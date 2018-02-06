@@ -867,7 +867,7 @@ class CoordinateSystem(ThreeDScene):
 
         # phi, theta, distance = self.camera.get_spherical_coords()
         ## EVERY RECURSION
-        nb_recursion = 10
+        nb_recursion = 4
         for depth in range(nb_recursion):
             # The l_new_base_cube contains 4 instances of each base cube from l_base_cube.
             l_new_base_cube, l_sub_cube = self.recursion(l_base_cube, depth)
